@@ -90,3 +90,8 @@ requirements:
 boot5.elf: boot5.o $(LIBS)
 	$(LD) $(LDFLAGS) -o $@ $^
 
+$(LIBS) libs: syslinux
+	make -C syslinux
+
+submodules:
+	git submodule update --init --recursive --remote
