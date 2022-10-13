@@ -23,6 +23,7 @@ qemu-system-i386 -drive format=raw,file=/dev/sdc
 ```
 
 ### Boot2
+```
 cat boot2.s
 make boot2.bin
 fdisk /dev/sdc
