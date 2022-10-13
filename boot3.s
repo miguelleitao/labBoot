@@ -38,7 +38,7 @@ Inicio:
         call PString    	; Chamar a rotina de impressao
 
 SemFim:
-  	jmp SemFim	; Loop infinito
+  	jmp SemFim		; Loop infinito
 
 ; Procedimentos
 PString:			; Marcador do inicio da sub-rotina

@@ -9,9 +9,9 @@ CHAR='A'
 
 entry start
 start:
-      mov ax, #VRAM_SEG
-      mov ds, ax
-      movb [0],#CHAR
-      movb [1],#ATTR
-loop1: jmp loop1
+        mov ax, #VRAM_SEG
+        mov ds, ax
+        movb [0],#CHAR
+        movb [1],#ATTR
+loop1:  jmp loop1
 
