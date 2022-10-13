@@ -14,8 +14,9 @@
  1153  cat /proc/partitions 
  1154  qemu-system-i386 -drive format=raw,file=/dev/sdc
  1155  dd if=boot2.bin of=/dev/sdc1
- 1156  qemu-system-i386 -drive format=raw,file=/dev/sdc
- 1157  qemu-system-i386 -drive format=raw,file=/dev/sdc1
+       ./put_flag.sh /dev/sdc1
+ 1156  qemu-system-i386 -drive format=raw,file=/dev/sdc1
+ 1157  qemu-system-i386 -drive format=raw,file=/dev/sdc
  1158  dd if=mbr.bin of=/dev/sdc
  1159  qemu-system-i386 -drive format=raw,file=/dev/sdc
  1160  dd if=boot3.bin of=/dev/sdc1
