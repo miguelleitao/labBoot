@@ -1,0 +1,33 @@
+ 1007  dnf install dev86
+ 1009  dnf install glibc-devel
+ 1010  dnf install glibc-devel-i686
+ 1028  dnf install glibc-devel-2.31-4.fc32.i686.rpm
+ 
+
+
+ 1147  dd if=/dev/zero of=/dev/sdc bs=1k count=1000
+ 1148  dd if=boot1.bin of=/dev/sdc
+ 1149  qemu-system-i386 -drive format=raw,file=/dev/sdc
+ 1150  ./put_flag.sh /dev/sdc
+ 1151  qemu-system-i386 -drive format=raw,file=/dev/sdc
+ 1152  fdisk /dev/sdc
+ 1153  cat /proc/partitions 
+ 1154  qemu-system-i386 -drive format=raw,file=/dev/sdc
+ 1155  dd if=boot2.bin of=/dev/sdc1
+ 1156  qemu-system-i386 -drive format=raw,file=/dev/sdc
+ 1157  qemu-system-i386 -drive format=raw,file=/dev/sdc1
+ 1158  dd if=mbr.bin of=/dev/sdc
+ 1159  qemu-system-i386 -drive format=raw,file=/dev/sdc
+ 1160  dd if=boot3.bin of=/dev/sdc1
+ 1161  qemu-system-i386 -drive format=raw,file=/dev/sdc
+ 1162  mkfs.fat /dev/sdc1
+ 1163  df
+ 1164  syslinux -i /dev/sdc1
+ 1165  qemu-system-i386 -drive format=raw,file=/dev/sdc
+ 1166  df
+ 1167  mount /dev/sdc1 p1
+ 1168  ll p1
+ 1170  cp boot5.c32 p1/
+ 1171  cp syslinux.cfg p1/
+ 1172  umount p1
+ 1173  qemu-system-i386 -drive format=raw,file=/dev/sdc
