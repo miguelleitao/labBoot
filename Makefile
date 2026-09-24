@@ -14,6 +14,8 @@
 ## Makefile for boot samples
 ##
 
+BOOT_DEV=/dev/BootDev
+
 gcc_ok   = $(shell if gcc $(1) -c -x c /dev/null -o /dev/null 2>/dev/null; \
 	           then echo $(1); else echo $(2); fi)
 
@@ -47,6 +49,10 @@ nothing:
 TARGETS = boot1.bin boot2.bin boot3.bin boot5.c32
 
 all: ${TARGETS}
+
+/dev/BootDev:
+	@echo "Please make /dev/BootDevice a link to your boot device." 
+	$(error no /dev/BootDev found. Please make /dev/BootDevice a link to your boot device.)
 
 .PRECIOUS: %.bin
 %.bin: %.o
@@ -92,6 +98,9 @@ boot5.elf: boot5.o $(LIBS)
 
 $(LIBS) libs: syslinux
 	make -C syslinux
+
+clear_boot_device: ${BOOT_DEV}
+	dd if=/dev/zero of=${BOOT_DEV} bs=1k count=10000
 
 submodules:
 	git submodule update --init --recursive --remote
