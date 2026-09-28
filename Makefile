@@ -14,7 +14,7 @@
 ## Makefile for boot samples
 ##
 
-BOOT_DEV=/dev/BootDev
+BOOT_DEV=/dev/sda
 
 gcc_ok   = $(shell if gcc $(1) -c -x c /dev/null -o /dev/null 2>/dev/null; \
 	           then echo $(1); else echo $(2); fi)
@@ -104,3 +104,13 @@ clear_boot_device: ${BOOT_DEV}
 
 submodules:
 	git submodule update --init --recursive --remote
+
+BOOTX64.EFI: boot6.so
+	objcopy -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel -j .rela -j .reloc -O efi-app-x86_64 $< $@
+
+boot6.so: boot6.o
+	ld -nostdlib -znocombreloc -T /usr/lib/elf_x86_64_efi.lds  -shared -Bsymbolic /usr/lib/crt0-efi-x86_64.o $< -L /usr/lib -lefi -lgnuefi -o $@
+
+boot6.o: boot6.c
+	gcc -I/usr/include/efi -I/usr/include/efi/x86_64 -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args -Wall -c $< -o $@ -mabi=ms
+
