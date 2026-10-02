@@ -109,8 +109,27 @@ BOOTX64.EFI: boot6.so
 	objcopy -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel -j .rela -j .reloc -O efi-app-x86_64 $< $@
 
 boot6.so: boot6.o
+<<<<<<< HEAD
+	ld -nostdlib -znocombreloc -T /usr/lib/gnuefi/x64/efi.lds -shared -Bsymbolic /usr/lib/gnuefi/x64/crt0.o boot6.o /usr/lib/gnuefi/x64/libefi.a /usr/lib/gnuefi/x64/libgnuefi.a -o boot6.so
+	#ld -nostdlib -znocombreloc -T /usr/lib/elf_x86_64_efi.lds -shared -Bsymbolic /usr/lib/crt0-efi-x86_64.o $< -L /usr/lib -lefi -lgnuefi -o $@
+
+boot6.o: boot6.c
+	gcc -I/usr/include/efi -I/usr/include/efi/x86_64 -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args -Wall -c $< -o $@ 
+	#-mabi=ms
+
+uefi-gpt.img:
+	rm -f $@
+	dd if=/dev/zero of=$@ bs=1M count=128
+	#fdisk $@ <<'FDISK'
+
+esp-test:
+	rm -rf $@
+	mkdir -p esp-test/EFI/BOOT
+	cp BOOTX64.EFI esp-test/EFI/BOOT/BOOTX64.EFI
+=======
 	ld -nostdlib -znocombreloc -T /usr/lib/elf_x86_64_efi.lds  -shared -Bsymbolic /usr/lib/crt0-efi-x86_64.o $< -L /usr/lib -lefi -lgnuefi -o $@
 
 boot6.o: boot6.c
 	gcc -I/usr/include/efi -I/usr/include/efi/x86_64 -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args -Wall -c $< -o $@ -mabi=ms
 
+>>>>>>> 1a6920c25d07376aac98a1349ee6cfce6ec1f458
