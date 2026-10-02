@@ -35,7 +35,7 @@ LNXLDFLAGS = -g
 SFLAGS     = -D__COM32__ -march=i386
 LIBDIR     = syslinux/bios/com32
 #LDFLAGS    = -T lib/com32.ld 
-LDFLAGS	   = -shared -T syslinux/com32/lib/i386/elf.ld -as-needed --hash-style=gnu 
+LDFLAGS	   = -shared -T syslinux/com32/lib/i386/elf.ld -as-needed --hash-style=gnu -z notext
 OBJCOPY    = objcopy
 LIBGCC    := $(shell $(CC) --print-libgcc)
 #LIBS	   = lib/libutil_com.a lib/libcom32.a $(LIBGCC)
@@ -46,7 +46,7 @@ LIBS	   = ${LIBDIR}/libutil/libutil.c32 ${LIBDIR}/gpllib/libgpl.c32 ${LIBDIR}/li
 
 nothing:
 
-TARGETS = boot1.bin boot2.bin boot3.bin boot5.c32
+TARGETS = boot1.bin boot2.bin boot3.bin boot5.c32 BOOTX64.EFI
 
 all: ${TARGETS}
 
@@ -109,9 +109,8 @@ BOOTX64.EFI: boot6.so
 	objcopy -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel -j .rela -j .reloc -O efi-app-x86_64 $< $@
 
 boot6.so: boot6.o
-<<<<<<< HEAD
-	ld -nostdlib -znocombreloc -T /usr/lib/gnuefi/x64/efi.lds -shared -Bsymbolic /usr/lib/gnuefi/x64/crt0.o boot6.o /usr/lib/gnuefi/x64/libefi.a /usr/lib/gnuefi/x64/libgnuefi.a -o boot6.so
-	#ld -nostdlib -znocombreloc -T /usr/lib/elf_x86_64_efi.lds -shared -Bsymbolic /usr/lib/crt0-efi-x86_64.o $< -L /usr/lib -lefi -lgnuefi -o $@
+	#ld -nostdlib -znocombreloc -T /usr/lib/gnuefi/x64/efi.lds -shared -Bsymbolic /usr/lib/gnuefi/x64/crt0.o boot6.o /usr/lib/gnuefi/x64/libefi.a /usr/lib/gnuefi/x64/libgnuefi.a -o boot6.so
+	ld -nostdlib -znocombreloc -T /usr/lib/elf_x86_64_efi.lds -shared -Bsymbolic /usr/lib/crt0-efi-x86_64.o $< -L /usr/lib -lefi -lgnuefi -o $@
 
 boot6.o: boot6.c
 	gcc -I/usr/include/efi -I/usr/include/efi/x86_64 -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args -Wall -c $< -o $@ 
@@ -126,10 +125,6 @@ esp-test:
 	rm -rf $@
 	mkdir -p esp-test/EFI/BOOT
 	cp BOOTX64.EFI esp-test/EFI/BOOT/BOOTX64.EFI
-=======
 	ld -nostdlib -znocombreloc -T /usr/lib/elf_x86_64_efi.lds  -shared -Bsymbolic /usr/lib/crt0-efi-x86_64.o $< -L /usr/lib -lefi -lgnuefi -o $@
 
-boot6.o: boot6.c
-	gcc -I/usr/include/efi -I/usr/include/efi/x86_64 -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args -Wall -c $< -o $@ -mabi=ms
 
->>>>>>> 1a6920c25d07376aac98a1349ee6cfce6ec1f458
