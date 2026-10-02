@@ -106,25 +106,77 @@ submodules:
 	git submodule update --init --recursive --remote
 
 BOOTX64.EFI: boot6.so
-	objcopy -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel -j .rela -j .reloc -O efi-app-x86_64 $< $@
+	objcopy \
+                -j .text \
+                -j .sdata \
+                -j .data \
+                -j .rodata \
+                -j .dynamic \
+                -j .dynsym \
+                -j .rel \
+                -j .rela \
+                -j .reloc \
+                -O efi-app-x86_64 $< $@
 
 boot6.so: boot6.o
-	#ld -nostdlib -znocombreloc -T /usr/lib/gnuefi/x64/efi.lds -shared -Bsymbolic /usr/lib/gnuefi/x64/crt0.o boot6.o /usr/lib/gnuefi/x64/libefi.a /usr/lib/gnuefi/x64/libgnuefi.a -o boot6.so
 	ld -nostdlib -znocombreloc -T /usr/lib/elf_x86_64_efi.lds -shared -Bsymbolic /usr/lib/crt0-efi-x86_64.o $< -L /usr/lib -lefi -lgnuefi -o $@
 
 boot6.o: boot6.c
 	gcc -I/usr/include/efi -I/usr/include/efi/x86_64 -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args -Wall -c $< -o $@ 
-	#-mabi=ms
 
-uefi-gpt.img:
-	rm -f $@
-	dd if=/dev/zero of=$@ bs=1M count=128
-	#fdisk $@ <<'FDISK'
+UEFI_IMG  := uefi-gpt.img
+UEFI_APP  := BOOTX64.EFI
+UEFI_MNT  := /mnt/labboot-uefi
 
-esp-test:
+uefi-image:
+	@echo "Creating $(UEFI_IMG)..."
+	@rm -f "$(UEFI_IMG)"
+	@dd if=/dev/zero of="$(UEFI_IMG)" bs=1M count=128 status=progress
+	@printf 'g\nn\n1\n\n\nt\n1\np\nw\n' | fdisk "$(UEFI_IMG)"
+
+# Formatar a ESP e instalar a aplicacao UEFI.
+
+uefi-install: $(UEFI_APP) $(UEFI_IMG)
+	@set -eu; \
+	LOOP=$$(losetup --find --show --partscan "$(UEFI_IMG)"); \
+	echo "Loop device: $$LOOP"; \
+	cleanup() { \
+	    umount "$(UEFI_MNT)" 2>/dev/null || true; \
+	    losetup --detach "$$LOOP" 2>/dev/null || true; \
+	}; \
+	trap cleanup EXIT INT TERM; \
+	echo "Formatting $${LOOP}p1 as FAT32..."; \
+	mkfs.fat -F 32 -n EFI "$${LOOP}p1"; \
+	mkdir -p "$(UEFI_MNT)"; \
+	mount "$${LOOP}p1" "$(UEFI_MNT)"; \
+	echo "Installing $(UEFI_APP)..."; \
+	mkdir -p "$(UEFI_MNT)/EFI/BOOT"; \
+	cp "$(UEFI_APP)" "$(UEFI_MNT)/EFI/BOOT/BOOTX64.EFI"; \
+	sync; \
+	echo; \
+	echo "Files installed in the ESP:"; \
+	find "$(UEFI_MNT)" -type f -print; \
+	echo; \
+	echo "Application checksum:"; \
+	sha256sum "$(UEFI_APP)"; \
+	sha256sum "$(UEFI_MNT)/EFI/BOOT/BOOTX64.EFI"; \
+	umount "$(UEFI_MNT)"; \
+	losetup --detach "$$LOOP"; \
+	trap - EXIT INT TERM; \
+	echo "Installation completed."
+
+uefi-run: $(UEFI_IMG)
+	qemu-system-x86_64 \
+		-machine q35 \
+		-m 256M \
+		-bios /usr/share/edk2/ovmf/OVMF_CODE.fd \
+		-drive file="$(UEFI_IMG)",format=raw,if=virtio
+
+esp-test-run: BOOTX64.EFI
 	rm -rf $@
 	mkdir -p esp-test/EFI/BOOT
 	cp BOOTX64.EFI esp-test/EFI/BOOT/BOOTX64.EFI
-	ld -nostdlib -znocombreloc -T /usr/lib/elf_x86_64_efi.lds  -shared -Bsymbolic /usr/lib/crt0-efi-x86_64.o $< -L /usr/lib -lefi -lgnuefi -o $@
+	qemu-system-x86_64 -m 256M -bios /usr/share/edk2/ovmf/OVMF_CODE.fd -drive format=raw,file=fat:rw:esp-test
+
 
 
