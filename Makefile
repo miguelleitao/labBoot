@@ -221,7 +221,7 @@ esp-test-run: BOOTX64.EFI
 	mkdir -p esp-test/EFI/BOOT
 	cp BOOTX64.EFI esp-test/EFI/BOOT/BOOTX64.EFI
 	ld -nostdlib -znocombreloc -T /usr/lib/elf_x86_64_efi.lds  -shared -Bsymbolic /usr/lib/crt0-efi-x86_64.o $< -L /usr/lib -lefi -lgnuefi -o $@
-        qemu-system-x86_64 -m 256M -bios /usr/share/edk2/ovmf/OVMF_CODE.fd -drive format=raw,file=fat:rw:esp-test
+	qemu-system-x86_64 -m 256M -bios /usr/share/edk2/ovmf/OVMF_CODE.fd -drive format=raw,file=fat:rw:esp-test
 
 
 loop0:
