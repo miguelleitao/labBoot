@@ -102,6 +102,29 @@ $(LIBS) libs: syslinux
 clear_boot_device: ${BOOT_DEV}
 	dd if=/dev/zero of=${BOOT_DEV} bs=1k count=10000
 
+qemu_boot: ${BOOT_DEV}
+	qemu-system-i386 -drive format=raw,file=${BOOT_DEV}
+
+boot1: boot1.bin
+	dd if=$< of=${BOOT_DEV}
+
+boot2: boot2.bin ${BOOT_DEV}1
+	dd if=$< of=${BOOT_DEV}1
+	./put_flash.sh ${BOOT_DEV}1
+	dd if=mbr.bin of=${BOOT_DEV}
+	
+boot3: boot3.bin ${BOOT_DEV}1
+	dd if=$< of=${BOOT_DEV}1
+
+boot5: boot5.c32 ${BOOT_DEV}1
+	mkfs.vfat ${BOOT_DEV}1
+	syslinux -i ${BOOT_DEV}1
+	mkdir -p p1
+	mount ${BOOT_DEV}1 p1
+	cp $< p1/
+	cp syslinux.cfg p1/
+	umount p1
+
 submodules:
 	git submodule update --init --recursive --remote
 
@@ -136,7 +159,7 @@ uefi-image:
 
 # Formatar a ESP e instalar a aplicacao UEFI.
 
-uefi-install: $(UEFI_APP) $(UEFI_IMG)
+uefi-install_imagefile: $(UEFI_APP) $(UEFI_IMG)
 	@set -eu; \
 	LOOP=$$(losetup --find --show --partscan "$(UEFI_IMG)"); \
 	echo "Loop device: $$LOOP"; \
@@ -165,12 +188,33 @@ uefi-install: $(UEFI_APP) $(UEFI_IMG)
 	trap - EXIT INT TERM; \
 	echo "Installation completed."
 
-uefi-run: $(UEFI_IMG)
+uefi-install: $(UEFI_APP) $(BOOT_DEV)1
+	@echo "Formatting ${BOOT_DEV}1 as FAT32..."
+	mkfs.fat -F 32 -n EFI ${BOOT_DEV}1
+	mkdir -p p1 
+	mount ${BOOT_DEV}1 p1 
+	@echo "Installing $(UEFI_APP)..." 
+	mkdir -p "p1/EFI/BOOT"
+	cp "$(UEFI_APP)" "p1/EFI/BOOT/BOOTX64.EFI"
+	@sync 
+	echo "Files installed in the ESP:" 
+	@find p1 -type f -print 
+	umount p1
+	@echo "Installation completed."
+	
+uefi-run_imagefile: $(UEFI_IMG)
 	qemu-system-x86_64 \
 		-machine q35 \
 		-m 256M \
 		-bios /usr/share/edk2/ovmf/OVMF_CODE.fd \
 		-drive file="$(UEFI_IMG)",format=raw,if=virtio
+
+uefi-run: $(BOOT_DEV)
+	qemu-system-x86_64 \
+	        -machine q35 \
+	        -m 256M \
+	        -bios /usr/share/edk2/ovmf/OVMF_CODE.fd \
+	        -drive file=$<,format=raw,if=virtio
 
 esp-test-run: BOOTX64.EFI
 	rm -rf $@
