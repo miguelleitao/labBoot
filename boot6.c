@@ -11,7 +11,7 @@ efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_table)
     InitializeLib(image_handle, system_table);
 
     Print(L"\r\n");
-    Print(L"Boot6 UEFI application\r\n");
+    Print(L"ARCOP Boot6 UEFI demo.\r\n");
     Print(L"UEFI + GPT boot completed successfully.\r\n");
     Print(L"\r\n");
     Print(L"Press any key to exit...\r\n");

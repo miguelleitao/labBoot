@@ -43,7 +43,6 @@ LIBS	   = ${LIBDIR}/libutil/libutil.c32 ${LIBDIR}/gpllib/libgpl.c32 ${LIBDIR}/li
 
 .SUFFIXES: .c .o .elf .c32 .s .bin
 
-
 nothing:
 
 TARGETS = boot1.bin boot2.bin boot3.bin boot5.c32 BOOTX64.EFI
