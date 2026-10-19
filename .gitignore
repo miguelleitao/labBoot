@@ -2,6 +2,8 @@
 *.c32
 *.img
 
+esp-test
+
 # Prerequisites
 *.d
 
